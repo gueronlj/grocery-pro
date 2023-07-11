@@ -1,46 +1,63 @@
-import puppeteer from 'puppeteer';
+import puppeteer from "puppeteer";
 
 const ZIPCODE = '22041';
+const SPECIALS_LIST = [];
 
-const scrape = async () => {
+const getAldiAd = async (zip) => {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.goto('https://stores.aldi.us/');
+  await page.setViewport({width: 1440, height: 900});
 
-  try{
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
+  // Type into search box
+  await page.waitForSelector('.search-input', {timeout: 20000});
+  await page.type('.search-input', zip);
+  await page.keyboard.press('Enter');
 
-    await page.goto('https://stores.aldi.us/');
-    console.log(page.url());
+  // Wait and click on Store Details button
+  let selector = '.Teaser-link';
+  await page.waitForSelector(selector, {timeout: 20000});
+  const options = await page.$$eval(selector, options => {
+      return options.map(option => option.href);
+  });
+  const url = options[1];
+  await page.goto(url);
 
-
-    // Set screen size
-    await page.setViewport({width: 1440, height: 900});
-
-    // Type into search box
-    await page.type('.search-input', ZIPCODE);
-    await page.keyboard.press('Enter');
-    console.log('Typed the zipcode')
-
-    // Wait and click on first result
-    const x = await page.$("h3");
-    const h3 = await page.evaluate(() =>{document.querySelector('h3').innerText});
-    console.log(h3);
-
-
-    const selector = '.Teaser-link';
- 
-    // const ele = '.Hero-cta--secondary';
-    // await page.waitForSelector(ele, {timeout: 6000});
-    // await page.click(ele);
-    // console.log('clicked link to store add');
-
-    await browser.close()
-
-  } catch( err ) {
-    console.log(err);
-  } 
+  //Get URL for local store Ad.
+  selector = '.Hero-cta--secondary';
+  await page.waitForSelector(selector, {timeout: 20000});
+  const adUrl = await page.$eval(selector, ele => ele.href)
+  console.log(adUrl);
+  await browser.close();
+  SPECIALS_LIST.push(adUrl);
 }
 
-export default function handler(req, res) {
-  scrape()
-  res.status(200).json({ name: 'John Doe' })
+const getSafewayAd = async (zipcode) => {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.goto('https://www.safeway.com/');
+  await page.setViewport({width: 715, height: 676});
+  console.log(page.url());
+
+  let selector = '#openFulfillmentModalButton'
+  await page.waitForSelector(selector, {timeout: 20000});
+  await page.click(selector);
+  
+  selector = '.input-search'
+  await page.waitForSelector(selector, {timeout: 5000});
+  await page.type(selector, 'zipcode')
+  await page.keyboard.press('Enter');
+
+  selector = '.btn-primary'
+  await page.waitForSelector(selector)
+  const x = await page.$eval(selector, (ele) => {
+    return ele.innerText;
+  })
+  await page.click(selector);
+}
+
+export default function handler(req, res) { 
+  //getAldiAd(ZIPCODE);
+  getSafewayAd(ZIPCODE);
+  res.status(200).json({ specials: SPECIALS_LIST })
 }

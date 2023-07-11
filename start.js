@@ -1,8 +1,8 @@
 import puppeteer from "puppeteer";
 
-const ZIPCODE = '22151';
+const ZIPCODE = '22041';
 
-const getAldiAd = async () => {
+const getAldiAd = async (zip) => {
    const browser = await puppeteer.launch();
    const page = await browser.newPage();
    await page.goto('https://stores.aldi.us/');
@@ -10,7 +10,7 @@ const getAldiAd = async () => {
 
    // Type into search box
    await page.waitForSelector('.search-input', {timeout: 10000});
-   await page.type('.search-input', ZIPCODE);
+   await page.type('.search-input', zip);
    await page.keyboard.press('Enter');
 
    // Wait and click on Store Details button
@@ -30,4 +30,4 @@ const getAldiAd = async () => {
    await browser.close();
 }
 
-getAldiAd()
+getAldiAd(ZIPCODE)

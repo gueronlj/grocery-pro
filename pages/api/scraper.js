@@ -33,27 +33,45 @@ const getAldiAd = async (zip) => {
 }
 
 const getSafewayAd = async (zipcode) => {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({headless: false});
   const page = await browser.newPage();
   await page.goto('https://www.safeway.com/');
-  await page.setViewport({width: 715, height: 676});
-  console.log(page.url());
+  await page.waitForNavigation();
+  await page.setViewport({width: 1440, height: 900});
 
-  let selector = '#openFulfillmentModalButton'
+  //====Close popup modal
+  await console.log('Trying to close pop-up');
+  let selector = '#onboardingCloseButton'
   await page.waitForSelector(selector, {timeout: 20000});
   await page.click(selector);
+  await console.log('closed popup');
   
-  selector = '.input-search'
-  await page.waitForSelector(selector, {timeout: 5000});
-  await page.type(selector, 'zipcode')
-  await page.keyboard.press('Enter');
-
-  selector = '.btn-primary'
-  await page.waitForSelector(selector)
-  const x = await page.$eval(selector, (ele) => {
-    return ele.innerText;
-  })
+  //====Close popup modal #2
+  await console.log('Trying to close pop-up 2');
+  selector = '#onboardingCloseButton'
+  await page.waitForSelector(selector, {timeout: 20000});
   await page.click(selector);
+  await console.log('closed popup');
+    
+
+  //===Click on 'Change' to enter zipcode
+  selector = '#openFulfillmentModalButton'
+  await page.waitForSelector(selector, {timeout: 20000});
+  await page.click(selector)
+  await console.log('clicking change');
+
+  //====Close popup modal #3
+  await console.log('Trying to close pop-up 3');
+  selector = '#onboardingCloseButton'
+  await page.waitForSelector(selector, {timeout: 20000});
+  await page.click(selector);
+  await console.log('closed popup');
+
+  //===Input local zipcode
+  await console.log('Trying to input zipcode');
+  selector = '::-p-xpath(/html/body/div[2]/div/div/div[3]/div/div/div/div/div[2]/store-fulfillment-modal-unified/div/div/div/div[2]/store-fulfillment-tabs/div/div[1]/input)'
+  const ele = await page.waitForSelector(selector);
+  ele.type('22041')
 }
 
 export default function handler(req, res) { 

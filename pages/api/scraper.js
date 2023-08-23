@@ -4,7 +4,7 @@ const ZIPCODE = '22041';
 const SPECIALS_LIST = [];
 
 const getAldiAd = async (zip) => {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({headless:false});
   const page = await browser.newPage();
   await page.goto('https://stores.aldi.us/');
   await page.setViewport({width: 1440, height: 900});
@@ -69,13 +69,13 @@ const getSafewayAd = async (zipcode) => {
 
   //===Input local zipcode
   await console.log('Trying to input zipcode');
-  selector = '::-p-xpath(/html/body/div[2]/div/div/div[3]/div/div/div/div/div[2]/store-fulfillment-modal-unified/div/div/div/div[2]/store-fulfillment-tabs/div/div[1]/input)'
-  const ele = await page.waitForSelector(selector);
-  ele.type('22041')
+  await page.locator('input.input-search').fill(zipcode)
+  // await page.waitForSelector(selector);
+  // await page.type(selector, zipcode);
 }
 
 export default function handler(req, res) { 
-  //getAldiAd(ZIPCODE);
+  getAldiAd(ZIPCODE);
   getSafewayAd(ZIPCODE);
   res.status(200).json({ specials: SPECIALS_LIST })
 }
